@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BudakAI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00f2fe;
+            --secondary: #4facfe;
+            --bg: #030712;
+            --glass: rgba(255, 255, 255, 0.05);
+            --border: rgba(255, 255, 255, 0.15);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            background: radial-gradient(circle at center, #111827 0%, #030712 100%);
+        }
+
+        /* Bintang di latar belakang (Ringan) */
+        #starCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Animasi Mengambang */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            width: 90%;
+            max-width: 450px;
+            animation: float 6s ease-in-out infinite;
+            will-change: transform;
+        }
+
+        .glass-panel {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            padding: 35px;
+            border-radius: 30px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 2.8rem;
+            background: linear-gradient(to right, #00f2fe, #4facfe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+        }
+
+        p { opacity: 0.6; font-size: 0.9rem; margin-bottom: 25px; letter-spacing: 1px; }
+
+        .input-box {
+            display: flex;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 6px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+        }
+
+        input {
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 10px;
+            flex-grow: 1;
+            outline: none;
+            font-size: 0.9rem;
+        }
+
+        .btn-scan {
+            background: var(--secondary);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-scan:hover { filter: brightness(1.2); transform: scale(1.05); }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+            max-height: 250px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .grid-item {
+            aspect-ratio: 1;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .grid-item.selected { border-color: var(--primary); }
+        .grid-item img { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
+        .grid-item.selected img { opacity: 1; }
+
+        .action-buttons { display: flex; gap: 12px; margin-top: 25px; }
+
+        .btn-download {
+            background: linear-gradient(45deg, var(--secondary), var(--primary));
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 14px;
+            flex: 2;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-cancel {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 14px;
+            flex: 1;
+            cursor: pointer;
+        }
+
+        .progress-container {
+            background: rgba(255,255,255,0.05);
+            height: 8px;
+            border-radius: 10px;
+            margin: 25px 0 10px;
+            overflow: hidden;
+        }
+
+        .bar {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 0.4s;
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        #statusText { font-size: 0.8rem; opacity: 0.6; }
+
+        .btn-reset {
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 10px 20px;
+            border-radius: 12px;
+            margin-top: 15px;
+            cursor: pointer;
+        }
+
+        /* Scrollbar kustom */
+        .grid::-webkit-scrollbar { width: 5px; }
+        .grid::-webkit-scrollbar-track { background: transparent; }
+        .grid::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+    <canvas id="starCanvas"></canvas>
+
+    <div class="container">
+        <div class="glass-panel">
+            <h1>Budak<span>AI</span></h1>
+            <p>TIKTOK&IG IMAGES DOWNLOADER</p>
+
+            <!-- Bagian Input -->
+            <div id="inputSection">
+                <div class="input-box">
+                    <input type="text" id="urlInput" placeholder="Tempel link di sini...">
+                    <button onclick="scanLink()" class="btn-scan" id="scanBtn">🔍</button>
+                </div>
+            </div>
+
+            <!-- Bagian TikTok -->
+            <div id="tiktokSection" style="display: none; text-align: center;">
+                <div style="background: rgba(255,255,255,0.03); padding: 20px; border-radius: 20px; margin-bottom: 20px; border: 1px dashed var(--border);">
+                    <h3 style="color: var(--primary); margin: 0 0 10px 0;">TikTok detected</h3>
+                    <p style="font-size: 0.8rem; margin: 0;">Sistem akan mengunduh semua slide dan menyimpannya ke folder Pictures/TikTok.</p>
+                </div>
+                <div class="action-buttons">
+                    <button onclick="resetApp()" class="btn-cancel">BATAL</button>
+                    <button onclick="downloadTikTok()" class="btn-download">UNDUH SEMUA</button>
+                </div>
+            </div>
+
+            <!-- Bagian Instagram -->
+            <div id="igSection" style="display: none;">
+                <div id="previewArea">
+                    <div class="grid" id="gridContainer"></div>
+                </div>
+                <div class="action-buttons">
+                    <button onclick="resetApp()" class="btn-cancel">BATAL</button>
+                    <button onclick="downloadIG()" class="btn-download" id="dlBtn">UNDUH</button>
+                </div>
+            </div>
+
+            <!-- Bagian Progress -->
+            <div id="progressSection" style="display: none;">
+                <div class="progress-container">
+                    <div class="bar" id="progressBar"></div>
+                </div>
+                <div id="statusText">Menyiapkan...</div>
+            </div>
+
+            <!-- Bagian Selesai -->
+            <div id="successSection" style="display: none; margin-top: 20px;">
+                <div style="font-size: 3rem; filter: drop-shadow(0 0 10px var(--primary));">✨</div>
+                <h3 style="color: var(--primary);">Berhasil!</h3>
+                <p id="successMsg" style="font-size: 0.8rem;">File tersimpan.</p>
+                <button onclick="resetApp()" class="btn-reset">UNDUH LAGI</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Animasi Bintang (Hemat Resource) ---
+        const canvas = document.getElementById('starCanvas');
+        const ctx = canvas.getContext('2d');
+        let stars = [];
+
+        function initStars() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            stars = [];
+            for(let i=0; i<70; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    s: Math.random() * 1.5,
+                    v: Math.random() * 0.2 + 0.1
+                });
+            }
+        }
+
+        function drawStars() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "white";
+            stars.forEach(s => {
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, s.s, 0, Math.PI*2);
+                ctx.fill();
+                s.y -= s.v;
+                if(s.y < 0) s.y = canvas.height;
+            });
+            requestAnimationFrame(drawStars);
+        }
+        window.onload = () => { initStars(); drawStars(); };
+        window.onresize = initStars;
+
+        // --- Logika Sinkronisasi app.py ---
+        let checker;
+
+        function resetApp() {
+            if(checker) clearInterval(checker);
+            document.getElementById('urlInput').value = "";
+            document.getElementById('gridContainer').innerHTML = "";
+            document.getElementById('inputSection').style.display = 'block';
+            document.getElementById('tiktokSection').style.display = 'none';
+            document.getElementById('igSection').style.display = 'none';
+            document.getElementById('progressSection').style.display = 'none';
+            document.getElementById('successSection').style.display = 'none';
+            document.getElementById('progressBar').style.width = '0%';
+        }
+
+        async function scanLink() {
+            const url = document.getElementById('urlInput').value;
+            const btn = document.getElementById('scanBtn');
+            if(!url) return;
+
+            btn.innerText = "⏳";
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/scan', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({url})
+                });
+                const data = await res.json();
+
+                document.getElementById('inputSection').style.display = 'none';
+
+                if(data.mode === 'bulk_tiktok') {
+                    document.getElementById('tiktokSection').style.display = 'block';
+                }
+                else if(data.mode === 'select_ig') {
+                    renderGrid(data.images);
+                    document.getElementById('igSection').style.display = 'block';
+                }
+                else {
+                    alert("Gagal: " + (data.message || "Unknown error"));
+                    resetApp();
+                }
+            } catch (e) {
+                alert("Server tidak merespon. Pastikan app.py jalan!");
+                resetApp();
+            }
+            btn.innerText = "🔍";
+            btn.disabled = false;
+        }
+
+        function renderGrid(images) {
+            const grid = document.getElementById('gridContainer');
+            grid.innerHTML = '';
+            images.forEach(imgUrl => {
+                const div = document.createElement('div');
+                div.className = 'grid-item selected';
+                const img = document.createElement('img');
+                img.src = imgUrl;
+                div.appendChild(img);
+                div.onclick = () => { div.classList.toggle('selected'); updateButtonCount(); };
+                div.dataset.url = imgUrl;
+                grid.appendChild(div);
+            });
+            updateButtonCount();
+        }
+
+        function updateButtonCount() {
+            const count = document.querySelectorAll('.grid-item.selected').length;
+            document.getElementById('dlBtn').innerText = `UNDUH (${count})`;
+        }
+
+        async function downloadTikTok() {
+            const url = document.getElementById('urlInput').value;
+            startDownloadProcess({ mode: 'tiktok', url: url });
+        }
+
+        async function downloadIG() {
+            const elements = document.querySelectorAll('.grid-item.selected');
+            const urls = Array.from(elements).map(el => el.dataset.url);
+            if(urls.length === 0) return alert("Pilih minimal 1!");
+            startDownloadProcess({ mode: 'instagram', urls: urls });
+        }
+
+        async function startDownloadProcess(payload) {
+            document.getElementById('tiktokSection').style.display = 'none';
+            document.getElementById('igSection').style.display = 'none';
+            document.getElementById('progressSection').style.display = 'block';
+
+            await fetch('/action', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+            checker = setInterval(cekStatus, 1000);
+        }
+
+        async function cekStatus() {
+            try {
+                const res = await fetch('/status');
+                const data = await res.json();
+                document.getElementById('progressBar').style.width = data.percent + '%';
+                document.getElementById('statusText').innerText = data.text;
+
+                if (data.status === 'finished') {
+                    clearInterval(checker);
+                    document.getElementById('successMsg').innerText = data.text;
+                    setTimeout(() => {
+                        document.getElementById('progressSection').style.display = 'none';
+                        document.getElementById('successSection').style.display = 'block';
+                    }, 1000);
+                }
+            } catch (e) {}
+        }
+    </script>
+</body>
+</html>
