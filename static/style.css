@@ -1,0 +1,160 @@
+/* Reset & Font */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    /* Background Custom dari folder static */
+    background: url('bg.jpg') no-repeat center center fixed;
+    background-size: cover;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+}
+
+/* Lapisan Gelap di atas background agar tulisan terbaca */
+body::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.6); /* Gelap 60% */
+    z-index: -1;
+}
+
+/* Panel Kaca (Glassmorphism) */
+.glass-panel {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 2rem;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh; /* Agar tidak kepotong di laptop */
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    text-align: center;
+}
+
+h1 {
+    margin-bottom: 7px;
+    color: white; /* Ini membuat kata "Budak" jadi Putih */
+    letter-spacing: 2px;
+}
+
+/* Ini membuat kata "AI" jadi Gradasi */
+.highlight {
+    background: linear-gradient(to right, #8E2DE2, #E94057); /* Gradasi Ungu ke Merah */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: bold;
+}
+
+p { color: #ccc; font-size: 0.9rem; margin-bottom: 20px; }
+
+/* Input Styles */
+.input-box { display: flex; gap: 10px; margin-bottom: 20px; }
+
+input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(0, 0, 0, 0.3);
+    color: white;
+    outline: none;
+}
+
+button {
+    padding: 12px 20px;
+    border-radius: 10px;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-scan { background: #0984e3; color: white; }
+.btn-scan:hover { background: #74b9ff; }
+
+/* Tombol Aksi */
+.action-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.btn-cancel {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.3);
+    color: #ddd;
+    flex: 1;
+}
+.btn-cancel:hover { background: rgba(255,255,255,0.1); }
+
+.btn-download {
+    background: linear-gradient(90deg, #00b894, #00cec9);
+    color: white;
+    flex: 2;
+}
+.btn-download:hover { transform: scale(1.02); }
+
+.btn-reset {
+    background: linear-gradient(90deg, #6c5ce7, #a29bfe);
+    color: white;
+    width: 100%;
+    margin-top: 15px;
+}
+
+/* Grid Images */
+#previewArea {
+flex-grow: 1;
+overflow-y: auto;
+margin-bottom: 10px;
+padding-right: 5px;
+}
+/* Scrollbar halus */
+#previewArea::-webkit-scrollbar { width: 5px; }
+#previewArea::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 10px; }
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.grid-item {
+    position: relative;
+    aspect-ratio: 1/1;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: 0.2s;
+}
+.grid-item img { width: 100%; height: 100%; object-fit: cover; }
+.grid-item.selected { opacity: 1; border: 2px solid #00b894; }
+.grid-item.selected::after {
+    content: "✔"; position: absolute; top: 5px; right: 5px;
+    background: #00b894; color: white; width: 20px; height: 20px;
+    border-radius: 50%; font-size: 12px;
+    display: flex; justify-content: center; align-items: center;
+}
+
+/* Progress Bar */
+.progress-container {
+    background: rgba(255,255,255,0.1);
+    height: 10px; border-radius: 5px;
+    margin-top: 15px; overflow: hidden; display: none;
+}
+.bar { height: 100%; width: 0%; background: #00b894; transition: width 0.3s; }
+
+/* Status Text */
+#statusText { margin-top: 10px; font-size: 0.8rem; color: #ddd; }
